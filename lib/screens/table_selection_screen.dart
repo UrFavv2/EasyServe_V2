@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import './menu_page.dart';
-import './kitchen_page.dart'; // Kitchen Page ကိုသွားဖို့ import လုပ်ထားပါ
 
 class TableSelectionScreen extends StatelessWidget {
   const TableSelectionScreen({super.key});
@@ -9,19 +8,24 @@ class TableSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("EasyServe - Select Table", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.orange,
+        title: const Text("EasyServe - Waiter Mode",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFFCC5500),
         centerTitle: true,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active, color: Colors.white),
+            onPressed: () {},
+          )
+        ],
       ),
-
-      // ၁။ Drawer Menu ထည့်သွင်းခြင်း
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Drawer Header
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.orange),
+              decoration: BoxDecoration(color: Color(0xFFCC5500)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -29,60 +33,46 @@ class TableSelectionScreen extends StatelessWidget {
                   CircleAvatar(
                     backgroundColor: Colors.white,
                     radius: 30,
-                    child: Icon(Icons.person, color: Colors.orange, size: 35),
+                    child: Icon(Icons.person, color: Color(0xFFCC5500), size: 35),
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "Waiter: Kyaw Kyaw", 
+                    "Waiter: Kyaw Kyaw",
                     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                    "EasyServe Staff", 
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
+                  Text("Service Staff ID: #001", style: TextStyle(color: Colors.white70)),
                 ],
               ),
             ),
-
-            // Drawer List Items
             ListTile(
-              leading: const Icon(Icons.table_restaurant, color: Colors.orange),
-              title: const Text("Table Selection"),
-              onTap: () {
-                Navigator.pop(context); // Drawer ကို ပိတ်ရုံပဲ
-              },
+              leading: const Icon(Icons.table_restaurant, color: Color(0xFFCC5500)),
+              title: const Text("Dining Tables"),
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.kitchen, color: Colors.orange),
-              title: const Text("Kitchen Display (KDS)"),
-              onTap: () {
-                Navigator.pop(context); // Drawer ကို ပိတ်မယ်
-                Navigator.push(
-                  context, 
-                  MaterialPageRoute(builder: (context) => const KitchenPage())
-                );
-              },
+              leading: const Icon(Icons.history, color: Color(0xFFCC5500)),
+              title: const Text("My Order History"),
+              onTap: () {},
             ),
-            const Divider(), // မျဉ်းတားလေး
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text("Logout"),
               onTap: () {
-                // Login Screen ကို ပြန်သွားမယ့် logic
                 Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
               },
             ),
           ],
         ),
       ),
-
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.85, 
           ),
           itemCount: 12,
           itemBuilder: (context, index) {
@@ -97,33 +87,77 @@ class TableSelectionScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isOccupied ? Colors.red[50] : Colors.green[50],
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: isOccupied ? Colors.red : Colors.green,
-                    width: 2,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: Card(
+                elevation: 5,
+                clipBehavior: Clip.antiAlias, // ပုံကို Card ရဲ့ ဝိုင်းနေတဲ့ ထောင့်တွေအတိုင်း ညှပ်ထုတ်ဖို့
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Stack(
                   children: [
-                    Icon(
-                      Icons.table_restaurant,
-                      size: 50,
-                      color: isOccupied ? Colors.red : Colors.green,
+                    // ၁။ Background Image (Card အပြည့်)
+                    Positioned.fill(
+                      child: Image.asset(
+                        'assets/images/table img.jpg',
+                        fit: BoxFit.cover, // ပုံကို Card အပြည့် ဖြန့်ခင်းဖို့
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Table ${index + 1}",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+
+                    // ၂။ Gradient Overlay (စာသားတွေ ဖတ်ရလွယ်အောင် ပုံကို အမှောင်ချခြင်း)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.8), // အောက်ခြေနားမှာ ပိုမှောင်မယ်
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      isOccupied ? "Occupied" : "Available",
-                      style: TextStyle(color: isOccupied ? Colors.red : Colors.green),
+
+                    // ၃။ Content (Table Number & Status)
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end, // စာသားတွေကို အောက်ခြေမှာထားမယ်
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "TABLE ${index + 1}",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [Shadow(blurRadius: 5, color: Colors.black)],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isOccupied ? const Color(0xFFCC5500) : Colors.green,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              isOccupied ? "Occupied" : "Available",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    
+                    // Occupied ဖြစ်ရင် ပုံကို နည်းနည်း ဝါးသွားစေချင်ရင် သုံးဖို့ (Optional)
+                    if (isOccupied)
+                      Positioned.fill(
+                        child: Container(color: const Color(0xFFCC5500).withOpacity(0.2)),
+                      ),
                   ],
                 ),
               ),
