@@ -21,7 +21,7 @@ class EasyServeApp extends StatelessWidget {
         useMaterial3: true, // Modern ဖြစ်တဲ့ UI style သုံးဖို့
       ),
       // App စဖွင့်တာနဲ့ Login Screen ကို အရင်ပြမယ်
-      home: const KitchenKdsScreen(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -1,165 +1,254 @@
 import 'package:flutter/material.dart';
 import './menu_page.dart';
+import './checkout_page.dart';
 
-class TableSelectionScreen extends StatelessWidget {
+class TableSelectionScreen extends StatefulWidget {
   const TableSelectionScreen({super.key});
+
+  @override
+  State<TableSelectionScreen> createState() => _TableSelectionScreenState();
+}
+
+class _TableSelectionScreenState extends State<TableSelectionScreen> {
+  late List<Map<String, dynamic>> tables;
+
+  // 🌟 Kitchen မှ လာသော Notification များ
+  List<Map<String, dynamic>> notifications = [
+    {"table": "3", "item": "Fried Rice", "time": "2 mins ago", "status": "Ready"},
+    {"table": "5", "item": "Coca Cola", "time": "Just now", "status": "Ready"},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    tables = List.generate(12, (index) => {
+      'isOccupied': false,
+      'hasKitchenNoti': (index == 0 || index == 2), 
+    });
+  }
+
+  // Notification Panel Function
+  void showNotificationPanel() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.6,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+            const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text("Kitchen Notifications", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFCC5500))),
+            ),
+            Expanded(
+              child: notifications.isEmpty 
+                ? const Center(child: Text("No new notifications"))
+                : ListView.builder(
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final noti = notifications[index];
+                      return ListTile(
+                        leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.restaurant, color: Colors.white, size: 20)),
+                        title: Text("Table ${noti['table']} - ${noti['item']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(noti['time']),
+                        trailing: ElevatedButton(
+                          onPressed: () {
+                            setState(() => notifications.removeAt(index));
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                          child: const Text("Pick Up"),
+                        ),
+                      );
+                    },
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Drawer အတွက် Stat Item Helper
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("EasyServe - Waiter Mode",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text("EasyServe POS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFFCC5500),
         centerTitle: true,
-        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_active, color: Colors.white),
-            onPressed: () {},
-          )
+            icon: Badge(
+              label: Text(notifications.length.toString()),
+              isLabelVisible: notifications.isNotEmpty,
+              child: const Icon(Icons.notifications_active, color: Colors.white, size: 28),
+            ),
+            onPressed: showNotificationPanel,
+          ),
+          const SizedBox(width: 10),
         ],
       ),
+
+      // 🌟 ပြင်ဆင်ထားသော Final Waiter Drawer
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFFCC5500)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 30,
-                    child: Icon(Icons.person, color: Color(0xFFCC5500), size: 35),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Waiter: Kyaw Kyaw",
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text("Service Staff ID: #001", style: TextStyle(color: Colors.white70)),
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(color: Color(0xFFCC5500)),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, color: Color(0xFFCC5500), size: 45),
+              ),
+              accountName: const Text("Waiter Alex", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              accountEmail: Row(
+                children: const [
+                  Icon(Icons.circle, color: Colors.greenAccent, size: 10),
+                  SizedBox(width: 5),
+                  Text("Online | ID: W-204"),
                 ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.table_restaurant, color: Color(0xFFCC5500)),
-              title: const Text("Dining Tables"),
-              onTap: () => Navigator.pop(context),
+            
+            // Performance Stats
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStatItem("Tables", "5", Colors.blue),
+                  _buildStatItem("Orders", "12", Colors.orange),
+                  _buildStatItem("Sales", "150K", Colors.green),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.history, color: Color(0xFFCC5500)),
-              title: const Text("My Order History"),
-              onTap: () {},
+            const Divider(),
+
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.table_bar, color: Colors.blue),
+                    title: const Text("My Workspace"),
+                    subtitle: const Text("Table 1, 3, 5, 8, 10"),
+                    trailing: const Badge(label: Text("5"), backgroundColor: Colors.blue),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history, color: Colors.teal),
+                    title: const Text("My Order History"),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                    title: const Text("Out of Stock Items"),
+                    trailing: const Badge(label: Text("3"), backgroundColor: Colors.red),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.wallet_giftcard, color: Colors.purple),
+                    title: const Text("My Tips Report"),
+                    onTap: () {},
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline),
+                    title: const Text("Kitchen Support"),
+                    onTap: () {},
+                  ),
+                ],
+              ),
             ),
+            
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text("Logout"),
-              onTap: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-              },
+              title: const Text("End Shift", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              onTap: () {},
             ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.85, 
+            crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.75,
           ),
           itemCount: 12,
           itemBuilder: (context, index) {
-            bool isOccupied = index % 3 == 0;
+            bool isOccupied = tables[index]['isOccupied'];
+            bool hasNoti = tables[index]['hasKitchenNoti'];
+            String tableNum = (index + 1).toString();
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MenuPage(tableNumber: (index + 1).toString()),
-                  ),
-                );
-              },
-              child: Card(
-                elevation: 5,
-                clipBehavior: Clip.antiAlias, // ပုံကို Card ရဲ့ ဝိုင်းနေတဲ့ ထောင့်တွေအတိုင်း ညှပ်ထုတ်ဖို့
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: Stack(
-                  children: [
-                    // ၁။ Background Image (Card အပြည့်)
-                    Positioned.fill(
-                      child: Image.asset(
-                        'assets/images/table img.jpg',
-                        fit: BoxFit.cover, // ပုံကို Card အပြည့် ဖြန့်ခင်းဖို့
-                      ),
-                    ),
-
-                    // ၂။ Gradient Overlay (စာသားတွေ ဖတ်ရလွယ်အောင် ပုံကို အမှောင်ချခြင်း)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.8), // အောက်ခြေနားမှာ ပိုမှောင်မယ်
-                            ],
-                          ),
+            return Card(
+              elevation: 5,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: isOccupied ? Colors.red : Colors.green.withOpacity(0.5), width: 3),
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(child: Image.asset('assets/images/table img.jpg', fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(color: Colors.grey[300]))),
+                  Positioned.fill(child: Container(color: isOccupied ? Colors.red.withOpacity(0.4) : Colors.black.withOpacity(0.7))),
+                  
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("TABLE $tableNum", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            if (hasNoti && isOccupied) const Icon(Icons.restaurant_menu, color: Colors.yellow, size: 24),
+                          ],
                         ),
-                      ),
-                    ),
-
-                    // ၃။ Content (Table Number & Status)
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end, // စာသားတွေကို အောက်ခြေမှာထားမယ်
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "TABLE ${index + 1}",
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              shadows: [Shadow(blurRadius: 5, color: Colors.black)],
-                            ),
-                          ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() => tables[index]['isOccupied'] = true);
+                            Navigator.push(context, MaterialPageRoute(builder: (c) => MenuPage(tableNumber: tableNum)));
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: isOccupied ? Colors.red[800] : Colors.green, foregroundColor: Colors.white),
+                          child: Text(isOccupied ? "ADD ORDER" : "NEW ORDER"),
+                        ),
+                        if (isOccupied) ...[
                           const SizedBox(height: 5),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isOccupied ? const Color(0xFFCC5500) : Colors.green,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              isOccupied ? "Occupied" : "Available",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final result = await Navigator.push(context, MaterialPageRoute(builder: (c) => CheckoutPage(tableNumber: tableNum, orders: const [])));
+                              if (result == true) setState(() => tables[index]['isOccupied'] = false);
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.red[900]),
+                            child: const Text("BILL OUT", style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
-                        ],
-                      ),
+                        ]
+                      ],
                     ),
-                    
-                    // Occupied ဖြစ်ရင် ပုံကို နည်းနည်း ဝါးသွားစေချင်ရင် သုံးဖို့ (Optional)
-                    if (isOccupied)
-                      Positioned.fill(
-                        child: Container(color: const Color(0xFFCC5500).withOpacity(0.2)),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
