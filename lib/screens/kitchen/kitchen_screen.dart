@@ -8,14 +8,33 @@ class KitchenKdsScreen extends StatefulWidget {
 }
 
 class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
-  // အော်ဒါစာရင်းကို List အနေနဲ့ သတ်မှတ်လိုက်ပါတယ်။
-  // တကယ်တမ်းမှာ ဒါက Database/Backend ကနေ လာမှာပါ။
   List<Map<String, dynamic>> allOrders = [
-    {"table": "10", "time": "15:02", "isUrgent": true},
-    {"table": "11", "time": "04:20", "isUrgent": false},
-    {"table": "12", "time": "08:15", "isUrgent": false},
-    {"table": "14", "time": "10:00", "isUrgent": false},
-    {"table": "15", "time": "12:30", "isUrgent": false},
+    {
+      "table": "10",
+      "time": "15:02",
+      "isUrgent": true,
+      "items": [
+        {"name": "Special Fried Rice", "qty": 2, "notes": ["အစပ်လျှော့", "အသားများများ"]},
+        {"name": "Spicy Ramen", "qty": 1, "notes": ["အချိုမထည့်နဲ့"]},
+        {"name": "Coca Cola", "qty": 3, "notes": []},
+      ]
+    },
+    {
+      "table": "12",
+      "time": "08:15",
+      "isUrgent": false,
+      "items": [
+        {"name": "Chicken Curry", "qty": 1, "notes": ["ပါဆယ်ထုပ်ပေးပါ"]},
+      ]
+    },
+    {
+      "table": "14",
+      "time": "09:00",
+      "isUrgent": false,
+      "items": [
+        {"name": "Fried Noodle", "qty": 2, "notes": ["အသားမပါ"]},
+      ]
+    },
   ];
 
   @override
@@ -31,120 +50,143 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: Text("ORDERS: ${allOrders.length}", // အော်ဒါအရေအတွက်ကို ပြောင်းလဲပေးမယ်
+              child: Text("ORDERS: ${allOrders.length}",
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
             ),
           )
         ],
       ),
+      // 🌟 ဘေးတိုက် Scroll ဆွဲနိုင်ရန် scrollDirection ပြောင်းလဲခြင်း
       body: allOrders.isEmpty
           ? const Center(child: Text("No Orders Left!", style: TextStyle(color: Colors.white70, fontSize: 20)))
           : ListView.builder(
-              padding: const EdgeInsets.all(12.0),
+              scrollDirection: Axis.horizontal, 
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
               itemCount: allOrders.length,
               itemBuilder: (context, index) {
-                return _buildRowOrderCard(index);
+                return _buildOrderColumnCard(index);
               },
             ),
     );
   }
 
-  Widget _buildRowOrderCard(int index) {
+  Widget _buildOrderColumnCard(int index) {
     final order = allOrders[index];
     bool isUrgent = order['isUrgent'];
-
-    final List<Map<String, dynamic>> orderItems = [
-      {"name": "Special Fried Rice", "qty": 2, "img": "assets/images/food1.jpg"},
-      {"name": "Spicy Ramen", "qty": 1, "img": "assets/images/food2.jpg"},
-    ];
+    List<dynamic> items = order['items'];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      width: 350, // Card တစ်ခုချင်းစီ၏ အကျယ်
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))
-        ],
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 4))],
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ၁။ Sidebar
-            Container(
-              width: 110,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isUrgent ? Colors.red.shade700 : const Color(0xFF333333),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(15), bottomLeft: Radius.circular(15)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("TABLE", style: TextStyle(color: Colors.white70, fontSize: 12)),
-                  Text("${order['table']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
-                  const SizedBox(height: 8),
-                  const Icon(Icons.timer, color: Colors.white70, size: 18),
-                  Text("${order['time']}", style: const TextStyle(color: Colors.white, fontSize: 14)),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          //  Header Section (Table No & Time)
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: isUrgent ? Colors.red.shade700 : const Color(0xFF333333),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
-
-            // ၂။ ဟင်းပွဲစာရင်း
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: orderItems.map((item) {
-                    return _foodItemRow(img: item['img'], qty: item['qty'], name: item['name']);
-                  }).toList(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("TABLE", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text("${order['table']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+                  ],
                 ),
-              ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Icon(Icons.timer, color: Colors.white70, size: 20),
+                    Text("${order['time']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                  ],
+                ),
+              ],
             ),
+          ),
 
-            // ၃။ DONE Button
-            Container(
+          // 🌟 Item List Section (Card ထဲမှာတင် အပေါ်အောက် Scroll ဆွဲနိုင်ရန်)
+          Expanded(
+            child: ListView.builder(
               padding: const EdgeInsets.all(15),
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // 🌟 DONE နှိပ်လိုက်ရင် List ထဲကနေ ဖယ်ထုတ်လိုက်ပါမယ်
-                    setState(() {
-                      allOrders.removeAt(index);
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(100, 70),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("DONE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              ),
+              itemCount: items.length,
+              itemBuilder: (context, itemIndex) {
+                final item = items[itemIndex];
+                return _foodItemRow(
+                  qty: item['qty'],
+                  name: item['name'],
+                  notes: item['notes'],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+
+          // Footer Section (DONE Button)
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  allOrders.removeAt(index);
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade600,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 60),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                elevation: 5,
+              ),
+              child: const Text("MARK AS DONE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _foodItemRow({required String img, required int qty, required String name}) {
+  Widget _foodItemRow({required int qty, required String name, required List<dynamic> notes}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.only(bottom: 15),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(img, width: 40, height: 40, fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(width: 40, height: 40, color: Colors.grey[200], child: const Icon(Icons.fastfood, color: Colors.grey, size: 20))),
-          ),
+          Text("$qty x", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFFCC5500))),
           const SizedBox(width: 15),
-          Text("$qty x", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFFCC5500))),
-          const SizedBox(width: 12),
-          Expanded(child: Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87), overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                if (notes.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: notes.map((n) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow.shade100,
+                          border: Border.all(color: Colors.orange.shade300),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text("• $n", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange.shade900)),
+                      )).toList(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
