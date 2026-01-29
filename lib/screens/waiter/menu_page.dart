@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './cart_page.dart';
+import 'cart_page.dart';
 
 class MenuPage extends StatefulWidget {
   final String tableNumber;

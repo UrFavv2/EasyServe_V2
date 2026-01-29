@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './table_selection_screen.dart';
+import './waiter/table_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
