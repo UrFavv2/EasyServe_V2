@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './menu_page.dart';
 import './checkout_page.dart';
+import '../../data/constants.dart'; // 🌟 Shared Menu List ကို Import လုပ်ပါ
 
 class TableSelectionScreen extends StatefulWidget {
   const TableSelectionScreen({super.key});
@@ -12,7 +13,6 @@ class TableSelectionScreen extends StatefulWidget {
 class _TableSelectionScreenState extends State<TableSelectionScreen> {
   late List<Map<String, dynamic>> tables;
 
-  // 🌟 Kitchen မှ လာသော Notification များ
   List<Map<String, dynamic>> notifications = [
     {"table": "3", "item": "Fried Rice", "time": "2 mins ago", "status": "Ready"},
     {"table": "5", "item": "Coca Cola", "time": "Just now", "status": "Ready"},
@@ -27,7 +27,6 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
     });
   }
 
-  // Notification Panel Function
   void showNotificationPanel() {
     showModalBottomSheet(
       context: context,
@@ -76,7 +75,6 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
     );
   }
 
-  // Drawer အတွက် Stat Item Helper
   Widget _buildStatItem(String label, String value, Color color) {
     return Column(
       children: [
@@ -88,6 +86,9 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 Drawer ထဲမှာပြရန် ပစ္စည်းပြတ်နေသော စာရင်းကို စစ်ထုတ်ခြင်း
+    final outOfStockItems = sharedMenuList.where((item) => item['isAvailable'] == false).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("EasyServe POS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -106,7 +107,6 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
         ],
       ),
 
-      // 🌟 ပြင်ဆင်ထားသော Final Waiter Drawer
       drawer: Drawer(
         child: Column(
           children: [
@@ -126,7 +126,6 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
               ),
             ),
             
-            // Performance Stats
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               child: Row(
@@ -156,12 +155,30 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
                     title: const Text("My Order History"),
                     onTap: () {},
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
-                    title: const Text("Out of Stock Items"),
-                    trailing: const Badge(label: Text("3"), backgroundColor: Colors.red),
-                    onTap: () {},
+
+                  // 🌟 ပြင်ဆင်ထားသော Out of Stock Section (ExpansionTile)
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      leading: const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                      title: const Text("Out of Stock Items"),
+                      trailing: Badge(
+                        label: Text(outOfStockItems.length.toString()), 
+                        backgroundColor: Colors.red,
+                      ),
+                      children: [
+                        if (outOfStockItems.isEmpty)
+                          const ListTile(title: Text("All items available", style: TextStyle(fontSize: 13, color: Colors.grey)))
+                        else
+                          ...outOfStockItems.map((item) => ListTile(
+                            dense: true,
+                            title: Text(item['name'], style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500)),
+                            leading: const Icon(Icons.remove_circle_outline, size: 18, color: Colors.red),
+                          )).toList(),
+                      ],
+                    ),
                   ),
+
                   ListTile(
                     leading: const Icon(Icons.wallet_giftcard, color: Colors.purple),
                     title: const Text("My Tips Report"),

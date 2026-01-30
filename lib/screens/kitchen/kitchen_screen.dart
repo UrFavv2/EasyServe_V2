@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../data/constants.dart'; // 🌟 Global List ရှိတဲ့ File ကို Import လုပ်ပါ
 
 class KitchenKdsScreen extends StatefulWidget {
   const KitchenKdsScreen({super.key});
@@ -8,6 +9,7 @@ class KitchenKdsScreen extends StatefulWidget {
 }
 
 class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
+  // Order Data များ (မူလအတိုင်း)
   List<Map<String, dynamic>> allOrders = [
     {
       "table": "10",
@@ -47,7 +49,6 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
         backgroundColor: const Color(0xFFCC5500),
         centerTitle: true,
         elevation: 0,
-        // 🌟 Total Orders နှင့် Noti Icon ကို Title အောက်တွင် ထားခြင်း
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Container(
@@ -56,12 +57,10 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // ဘယ်ဘက်ခြမ်း - Total Orders
                 Text(
                   "TOTAL ORDERS: ${allOrders.length}",
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                // ညာဘက်ခြမ်း - Notification Icon with Badge
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -153,10 +152,20 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
               itemCount: items.length,
               itemBuilder: (context, itemIndex) {
                 final item = items[itemIndex];
+                
+                // 🌟 Stock စစ်ဆေးသည့် Logic
+                // sharedMenuList ထဲမှာ Order ထဲကနာမည်နဲ့တူတာကိုရှာပြီး isAvailable ကို ကြည့်ပါတယ်
+                final menuData = sharedMenuList.firstWhere(
+                  (m) => m['name'] == item['name'],
+                  orElse: () => {"isAvailable": true}, // ရှာမတွေ့ရင် ပုံမှန်အတိုင်းပြမယ်
+                );
+                bool isAvailable = menuData['isAvailable'] ?? true;
+
                 return _foodItemRow(
                   qty: item['qty'],
                   name: item['name'],
                   notes: item['notes'],
+                  isAvailable: isAvailable, // 🌟 Logic အသစ်ထည့်သွင်းခြင်း
                 );
               },
             ),
@@ -184,19 +193,39 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
     );
   }
 
-  Widget _foodItemRow({required int qty, required String name, required List<dynamic> notes}) {
+  // 🌟 isAvailable parameter ထပ်တိုးထားပါတယ်
+  Widget _foodItemRow({required int qty, required String name, required List<dynamic> notes, required bool isAvailable}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("$qty x", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFFCC5500))),
+          // Stock မရှိရင် အရေအတွက်ကိုပါ မှိန်ပြပါမယ်
+          Text("$qty x", 
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: 22, 
+              color: isAvailable ? const Color(0xFFCC5500) : Colors.grey,
+            )),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                // 🌟 Stock မရှိရင် စာသားကို မျဉ်းတားပြီး အရောင်မှိန်ပါမယ်
+                Text(
+                  name, 
+                  style: TextStyle(
+                    fontSize: 18, 
+                    fontWeight: FontWeight.bold, 
+                    color: isAvailable ? Colors.black87 : Colors.grey,
+                    decoration: isAvailable ? null : TextDecoration.lineThrough,
+                  )),
+                
+                // Stock မရှိရင် သတိပေးစာတန်းလေးပြပါမယ်
+                if (!isAvailable)
+                  const Text("SOLD OUT IN STOCK", style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+
                 if (notes.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -206,11 +235,11 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
                       children: notes.map((n) => Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.yellow.shade100,
-                          border: Border.all(color: Colors.orange.shade300),
+                          color: isAvailable ? Colors.yellow.shade100 : Colors.grey.shade200,
+                          border: Border.all(color: isAvailable ? Colors.orange.shade300 : Colors.grey.shade400),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text("• $n", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange.shade900)),
+                        child: Text("• $n", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isAvailable ? Colors.orange.shade900 : Colors.grey.shade600)),
                       )).toList(),
                     ),
                   ),

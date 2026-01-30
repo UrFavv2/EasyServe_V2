@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import './cart_page.dart';
+import '../../data/constants.dart'; // 🌟 Shared Data ကို Import လုပ်ပါ
 
 class MenuPage extends StatefulWidget {
   final String tableNumber;
@@ -10,11 +11,9 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
-  // Category စာရင်း
   final List<String> categories = ["Popular", "Main Course", "Appetizers", "Drinks", "Desserts"];
   String selectedCategory = "Popular";
 
-  // အော်ဒါစာရင်း (Cart)
   Map<String, int> cart = {}; 
 
   @override
@@ -29,10 +28,7 @@ class _MenuPageState extends State<MenuPage> {
       ),
       body: Column(
         children: [
-          // ၁။ Category Selector (Horizontal)
           _buildCategoryList(),
-
-          // ၂။ Menu Items Grid
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(12),
@@ -42,7 +38,8 @@ class _MenuPageState extends State<MenuPage> {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.75,
               ),
-              itemCount: 8, // ဥပမာ ဟင်းပွဲ ၈ ခု
+              // 🌟 sharedMenuList ရဲ့ length အတိုင်း ပြောင်းလိုက်ပါပြီ
+              itemCount: sharedMenuList.length, 
               itemBuilder: (context, index) {
                 return _buildMenuCard(index);
               },
@@ -50,8 +47,6 @@ class _MenuPageState extends State<MenuPage> {
           ),
         ],
       ),
-      
-      // ၃။ Bottom Checkout Bar (အော်ဒါရှိမှ ပေါ်မယ်)
       bottomNavigationBar: cart.isNotEmpty ? _buildCheckoutBar() : null,
     );
   }
@@ -89,63 +84,109 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   Widget _buildMenuCard(int index) {
-    String foodName = "Menu Item $index";
+    // 🌟 sharedMenuList ထဲကနေ Data ယူပါမယ်
+    final item = sharedMenuList[index];
+    String foodName = item['name'];
+    bool isAvailable = item['isAvailable'] ?? true; // Stock ရှိ/မရှိ စစ်ခြင်း
     int count = cart[foodName] ?? 0;
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       elevation: 3,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack( // 🌟 Sold Out Overlay အတွက် Stack သုံးထားပါတယ်
         children: [
-          // Food Image
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-              child: Image.asset('assets/images/table img.jpg', fit: BoxFit.cover, width: double.infinity),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(foodName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const Text("5,500 MMK", style: TextStyle(color: Color(0xFFCC5500), fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                
-                // Add/Remove Quantity Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                  child: Opacity( // Stock မရှိရင် ပုံကို မှိန်လိုက်မယ်
+                    opacity: isAvailable ? 1.0 : 0.5,
+                    child: Image.asset('assets/images/table img.jpg', fit: BoxFit.cover, width: double.infinity),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (count > 0)
-                      _qtyButton(Icons.remove, () {
-                        setState(() {
-                          if (cart[foodName]! > 1) cart[foodName] = cart[foodName]! - 1;
-                          else cart.remove(foodName);
-                        });
-                      }),
-                    if (count > 0) Text("$count", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    _qtyButton(Icons.add, () {
-                      setState(() => cart[foodName] = count + 1);
-                    }),
+                    Text(foodName, 
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 16,
+                        color: isAvailable ? Colors.black : Colors.grey,
+                        decoration: isAvailable ? null : TextDecoration.lineThrough,
+                      )),
+                    Text("5,500 MMK", 
+                      style: TextStyle(
+                        color: isAvailable ? const Color(0xFFCC5500) : Colors.grey, 
+                        fontWeight: FontWeight.bold
+                      )),
+                    const SizedBox(height: 8),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (count > 0)
+                          _qtyButton(Icons.remove, () {
+                            setState(() {
+                              if (cart[foodName]! > 1) cart[foodName] = cart[foodName]! - 1;
+                              else cart.remove(foodName);
+                            });
+                          }, isAvailable),
+                        if (count > 0) Text("$count", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        // 🌟 Stock မရှိရင် Add Button ကိုပါ ပိတ်ထားမယ်
+                        _qtyButton(Icons.add, () {
+                          if (isAvailable) {
+                            setState(() => cart[foodName] = count + 1);
+                          }
+                        }, isAvailable),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          
+          // 🌟 Sold Out Overlay Label
+          if (!isAvailable)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: const Text(
+                      "SOLD OUT",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _qtyButton(IconData icon, VoidCallback onTap) {
+  // 🌟 isEnabled parameter ထပ်တိုးပြီး Button အရောင်ကို ထိန်းလိုက်ပါတယ်
+  Widget _qtyButton(IconData icon, VoidCallback onTap, bool isEnabled) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isEnabled ? onTap : null,
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFCC5500),
+          color: isEnabled ? const Color(0xFFCC5500) : Colors.grey,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: Colors.white, size: 20),
@@ -163,14 +204,14 @@ class _MenuPageState extends State<MenuPage> {
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
       ),
       child: ElevatedButton(
-       onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => CartPage(cart: cart, tableNumber: widget.tableNumber),
-    ),
-  );
-},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CartPage(cart: cart, tableNumber: widget.tableNumber),
+            ),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFCC5500),
           padding: const EdgeInsets.symmetric(vertical: 15),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 // အောက်က import မှာ 'pos' နေရာမှာ မင်းရဲ့ project နာမည်ကို အစားထိုးပါ
 import './screens/splash_screen.dart';
-import './screens/kitchen/kitchen_main_screen.dart';
 void main() {
   runApp(const EasyServeApp());
 }
