@@ -46,17 +46,52 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
         backgroundColor: const Color(0xFFCC5500),
         centerTitle: true,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: Text("ORDERS: ${allOrders.length}",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        elevation: 0,
+        // 🌟 Total Orders နှင့် Noti Icon ကို Title အောက်တွင် ထားခြင်း
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            color: const Color(0xFFCC5500),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // ဘယ်ဘက်ခြမ်း - Total Orders
+                Text(
+                  "TOTAL ORDERS: ${allOrders.length}",
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                // ညာဘက်ခြမ်း - Notification Icon with Badge
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Icon(Icons.notifications_active, color: Colors.white, size: 26),
+                    if (allOrders.isNotEmpty)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.yellow,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFCC5500), width: 1),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                          child: Text(
+                            '${allOrders.length}',
+                            style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
-          )
-        ],
+          ),
+        ),
       ),
-      // 🌟 ဘေးတိုက် Scroll ဆွဲနိုင်ရန် scrollDirection ပြောင်းလဲခြင်း
       body: allOrders.isEmpty
           ? const Center(child: Text("No Orders Left!", style: TextStyle(color: Colors.white70, fontSize: 20)))
           : ListView.builder(
@@ -76,7 +111,7 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
     List<dynamic> items = order['items'];
 
     return Container(
-      width: 350, // Card တစ်ခုချင်းစီ၏ အကျယ်
+      width: 350,
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -86,7 +121,6 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          //  Header Section (Table No & Time)
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -113,8 +147,6 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
               ],
             ),
           ),
-
-          // 🌟 Item List Section (Card ထဲမှာတင် အပေါ်အောက် Scroll ဆွဲနိုင်ရန်)
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(15),
@@ -129,8 +161,6 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
               },
             ),
           ),
-
-          // Footer Section (DONE Button)
           Padding(
             padding: const EdgeInsets.all(15),
             child: ElevatedButton(
