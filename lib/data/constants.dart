@@ -85,3 +85,10 @@ List<Map<String, dynamic>> inventoryList = [
     "minThreshold": 24,
   },
 ];
+
+/// 🌟 Staff Member List
+List<Map<String, dynamic>> staffList = [
+  {"id": "S001", "name": "Aung Aung", "role": "Admin", "status": "Active"},
+  {"id": "S002", "name": "Su Su", "role": "Chef", "status": "Active"},
+  {"id": "S003", "name": "Kyaw Kyaw", "role": "Waiter", "status": "On Leave"},
+];

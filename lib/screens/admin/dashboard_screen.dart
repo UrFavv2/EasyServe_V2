@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart'; 
 import 'menu_manager.dart'; 
 import 'order_history.dart'; 
-import 'inventory_manager.dart'; // 🌟 Inventory Manager ကို import လုပ်ထားပါ
+import 'inventory_manager.dart'; 
+import 'staff_list.dart'; // 🌟 Staff List ကို import လုပ်ဖို့ မမေ့ပါနဲ့ Bro
 import '../../data/constants.dart'; 
 
 class AdminDashboard extends StatefulWidget {
@@ -116,16 +117,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistory()));
             }),
             
-            // 🌟 ဤနေရာတွင် Inventory Manager ကို ချိတ်လိုက်ပါပြီ Bro
             _drawerItem(Icons.inventory_2_outlined, "Inventory Manager", false, () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const InventoryManager()));
+            }),
+
+            // 🌟 ဤနေရာတွင် Staff List ကို ချိတ်ဆက်လိုက်ပါပြီ Bro
+            _drawerItem(Icons.people_outline, "Staff List", false, () {
               Navigator.pop(context); // Drawer အရင်ပိတ်မယ်
               Navigator.push(
                 context, 
-                MaterialPageRoute(builder: (context) => const InventoryManager())
+                MaterialPageRoute(builder: (context) => const StaffList())
               );
             }),
 
-            _drawerItem(Icons.people, "Staff List", false, () {}),
             const Spacer(),
             _drawerItem(Icons.logout, "Logout", false, () {}),
             const SizedBox(height: 20),
