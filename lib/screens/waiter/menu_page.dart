@@ -103,7 +103,7 @@ class _MenuPageState extends State<MenuPage> {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                   child: Opacity( // Stock မရှိရင် ပုံကို မှိန်လိုက်မယ်
                     opacity: isAvailable ? 1.0 : 0.5,
-                    child: Image.asset('assets/images/table img.jpg', fit: BoxFit.cover, width: double.infinity),
+                    child: Image.asset('assets/images/menu.jpg', fit: BoxFit.cover, width: double.infinity),
                   ),
                 ),
               ),
