@@ -9,15 +9,13 @@ class InventoryManager extends StatefulWidget {
 }
 
 class _InventoryManagerState extends State<InventoryManager> {
-  // 🌟 စမ်းသပ်ရန်အတွက် local list အနေနဲ့ သုံးပါမယ်
+  // 🌟 စမ်းသပ်ရန် local list
   List<Map<String, dynamic>> items = List.from(inventoryList);
 
-  // Controller များ
   final TextEditingController nameController = TextEditingController();
   final TextEditingController stockController = TextEditingController();
   final TextEditingController unitController = TextEditingController();
 
-  // 🌟 ပစ္စည်းအသစ်ထည့်ရန် Dialog Box
   void _showAddItemDialog() {
     showDialog(
       context: context,
@@ -51,9 +49,7 @@ class _InventoryManagerState extends State<InventoryManager> {
                     "minThreshold": 5,
                   });
                 });
-                nameController.clear();
-                stockController.clear();
-                unitController.clear();
+                _clearControllers();
                 Navigator.pop(context);
               }
             },
@@ -64,6 +60,12 @@ class _InventoryManagerState extends State<InventoryManager> {
     );
   }
 
+  void _clearControllers() {
+    nameController.clear();
+    stockController.clear();
+    unitController.clear();
+  }
+
   Widget _buildTextField(TextEditingController controller, String hint, {bool isNumber = false}) {
     return TextField(
       controller: controller,
@@ -71,7 +73,6 @@ class _InventoryManagerState extends State<InventoryManager> {
       decoration: InputDecoration(
         labelText: hint,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
       ),
     );
   }
@@ -89,21 +90,34 @@ class _InventoryManagerState extends State<InventoryManager> {
       body: Column(
         children: [
           _buildQuickSummary(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Stocks Overview", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ),
+          ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: GridView.builder(
+              padding: const EdgeInsets.all(15),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // 🌟 တစ်တန်းမှာ ၂ ခုပြမယ်
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 0.85, // Card ရဲ့ အချိုးအစား (အလျား/အနံ)
+              ),
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index];
                 bool isLowStock = item['stock'] <= item['minThreshold'];
-                return _buildInventoryCard(item, isLowStock);
+                return _buildGridInventoryCard(item, isLowStock);
               },
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddItemDialog, // Dialog ကို ခေါ်လိုက်မယ်
+        onPressed: _showAddItemDialog,
         backgroundColor: Colors.black,
         icon: const Icon(Icons.add_business, color: Colors.white),
         label: const Text("Add New Stock", style: TextStyle(color: Colors.white)),
@@ -111,25 +125,48 @@ class _InventoryManagerState extends State<InventoryManager> {
     );
   }
 
-  // Inventory Card Widget
-  Widget _buildInventoryCard(Map<String, dynamic> item, bool isLowStock) {
+  // 🌟 အသစ်ပြင်ဆင်ထားတဲ့ Grid Card UI
+  Widget _buildGridInventoryCard(Map<String, dynamic> item, bool isLowStock) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+        border: isLowStock ? Border.all(color: Colors.red.withValues(alpha: 0.5), width: 1) : null,
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(15),
-        leading: CircleAvatar(
-          backgroundColor: isLowStock ? Colors.red.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
-          child: Icon(isLowStock ? Icons.priority_high : Icons.inventory_2, color: isLowStock ? Colors.red : Colors.blue),
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: isLowStock ? Colors.red.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+              child: Icon(isLowStock ? Icons.warning_amber_rounded : Icons.inventory_2, 
+                color: isLowStock ? Colors.red : Colors.blue, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(item['itemName'], 
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 4),
+            Text(item['category'], 
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+            const Divider(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("${item['stock']}", 
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, 
+                  color: isLowStock ? Colors.red : Colors.black)),
+                const SizedBox(width: 4),
+                Text(item['unit'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ],
         ),
-        title: Text(item['itemName'], style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(item['category']),
-        trailing: Text("${item['stock']} ${item['unit']}", 
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isLowStock ? Colors.red : Colors.black)),
       ),
     );
   }
@@ -150,7 +187,7 @@ class _InventoryManagerState extends State<InventoryManager> {
   Widget _infoBox(String label, String value, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
