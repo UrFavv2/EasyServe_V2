@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart'; // 🌟 Chart library ကို import လုပ်ပါ
+import 'package:fl_chart/fl_chart.dart'; 
+// 🌟 MenuManager ကို import လုပ်ဖို့ မမေ့ပါနဲ့ (File path မှန်အောင် စစ်ပေးပါ)
+import 'menu_manager.dart'; 
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -33,7 +35,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
             _buildStatsGrid(),
             const SizedBox(height: 25),
 
-            // 🌟 ဤနေရာတွင် Chart widget ကို ခေါ်သုံးထားသည်
             _buildSalesChart(),
             const SizedBox(height: 20),
             
@@ -56,11 +57,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold)),
               ),
             ),
-            _drawerItem(Icons.dashboard, "Dashboard", true),
-            _drawerItem(Icons.restaurant_menu, "Menu Manager", false),
-            _drawerItem(Icons.people, "Staff List", false),
+            // 🌟 Dashboard Menu
+            _drawerItem(Icons.dashboard, "Dashboard", true, () {
+              Navigator.pop(context); // Drawer ကိုပဲ ပိတ်လိုက်မယ်
+            }),
+            // 🌟 Menu Manager Menu (ချိတ်ဆက်မှု အပိုင်း)
+            _drawerItem(Icons.restaurant_menu, "Menu Manager", false, () {
+              Navigator.pop(context); // Drawer ပိတ်မယ်
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MenuManager()),
+              );
+            }),
+            _drawerItem(Icons.people, "Staff List", false, () {}),
             const Spacer(),
-            _drawerItem(Icons.logout, "Logout", false),
+            _drawerItem(Icons.logout, "Logout", false, () {}),
             const SizedBox(height: 20),
           ],
         ),
@@ -68,11 +79,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _drawerItem(IconData icon, String title, bool isActive) {
+  // 🌟 onTap ပါဝင်အောင် ပြုပြင်ထားသော Drawer Item helper
+  Widget _drawerItem(IconData icon, String title, bool isActive, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: isActive ? Colors.orange : Colors.grey),
       title: Text(title, style: TextStyle(color: isActive ? Colors.white : Colors.grey)),
-      onTap: () => Navigator.pop(context),
+      onTap: onTap,
     );
   }
 
@@ -115,7 +127,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // 🌟 ပြင်ဆင်လိုက်သော Real Chart Widget
   Widget _buildSalesChart() {
     return Container(
       width: double.infinity,
