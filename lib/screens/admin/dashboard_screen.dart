@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart'; 
 import 'menu_manager.dart'; 
 import 'order_history.dart'; 
-import '../../data/constants.dart'; // 🌟 calculateTodayRevenue() အတွက် လိုအပ်ပါတယ်
+import 'inventory_manager.dart'; // 🌟 Inventory Manager ကို import လုပ်ထားပါ
+import '../../data/constants.dart'; 
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -13,7 +14,6 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
 
-  // 🌟 ဈေးနှုန်းတွေကို ကော်မာ (,) ပြန်ထည့်ပေးတဲ့ Helper Function
   String formatPrice(double price) {
     return price.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'
@@ -22,7 +22,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 Revenue တွက်ထုတ်ခြင်း
     final double totalRevenue = calculateTodayRevenue();
 
     return Scaffold(
@@ -41,7 +40,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🌟 ၁။ အသစ်ထည့်လိုက်သော Summary Banner
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -80,7 +78,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               
-              _buildStatsGrid(totalRevenue), // Revenue data လှမ်းပို့ပေးမယ်
+              _buildStatsGrid(totalRevenue), 
               const SizedBox(height: 25),
 
               _buildSalesChart(),
@@ -117,6 +115,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistory()));
             }),
+            
+            // 🌟 ဤနေရာတွင် Inventory Manager ကို ချိတ်လိုက်ပါပြီ Bro
+            _drawerItem(Icons.inventory_2_outlined, "Inventory Manager", false, () {
+              Navigator.pop(context); // Drawer အရင်ပိတ်မယ်
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context) => const InventoryManager())
+              );
+            }),
+
             _drawerItem(Icons.people, "Staff List", false, () {}),
             const Spacer(),
             _drawerItem(Icons.logout, "Logout", false, () {}),
@@ -135,7 +143,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // 🌟 Parameter ထည့်သွင်းထားသော Stats Grid
   Widget _buildStatsGrid(double revenue) {
     return GridView.count(
       shrinkWrap: true,

@@ -60,3 +60,28 @@ double calculateTodayRevenue() {
   }
   return total;
 }
+
+/// 🌟 Inventory Shared Data
+List<Map<String, dynamic>> inventoryList = [
+  {
+    "itemName": "Ramen Noodles",
+    "category": "Raw Material",
+    "stock": 50, // ကီလိုဂရမ် သို့မဟုတ် ထုပ်
+    "unit": "kg",
+    "minThreshold": 10, // ၁၀ အောက်ရောက်ရင် သတိပေးမယ်
+  },
+  {
+    "itemName": "Chicken Breast",
+    "category": "Meat",
+    "stock": 8,
+    "unit": "kg",
+    "minThreshold": 15, // ဒါဆိုရင် Low Stock ဖြစ်နေပြီ
+  },
+  {
+    "itemName": "Coca Cola",
+    "category": "Drink",
+    "stock": 120,
+    "unit": "cans",
+    "minThreshold": 24,
+  },
+];
