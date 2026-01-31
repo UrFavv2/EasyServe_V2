@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart'; 
-// 🌟 MenuManager ကို import လုပ်ဖို့ မမေ့ပါနဲ့ (File path မှန်အောင် စစ်ပေးပါ)
 import 'menu_manager.dart'; 
+import 'order_history.dart'; 
+import '../../data/constants.dart'; // 🌟 calculateTodayRevenue() အတွက် လိုအပ်ပါတယ်
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -11,8 +12,19 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
+
+  // 🌟 ဈေးနှုန်းတွေကို ကော်မာ (,) ပြန်ထည့်ပေးတဲ့ Helper Function
+  String formatPrice(double price) {
+    return price.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 🌟 Revenue တွက်ထုတ်ခြင်း
+    final double totalRevenue = calculateTodayRevenue();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FA),
       appBar: AppBar(
@@ -24,22 +36,59 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
       drawer: _buildDrawer(), 
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Dashboard Overview", 
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            
-            _buildStatsGrid(),
-            const SizedBox(height: 25),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🌟 ၁။ အသစ်ထည့်လိုက်သော Summary Banner
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(bottom: 25),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.orange, Colors.deepOrange],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Today's Total Revenue", 
+                      style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    const SizedBox(height: 5),
+                    Text("${formatPrice(totalRevenue)} MMK", 
+                      style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    const Text("Keep up the good work!", 
+                      style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  ],
+                ),
+              ),
 
-            _buildSalesChart(),
-            const SizedBox(height: 20),
-            
-            _buildRecentOrders(),
-          ],
+              const Text("Dashboard Overview", 
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              
+              _buildStatsGrid(totalRevenue), // Revenue data လှမ်းပို့ပေးမယ်
+              const SizedBox(height: 25),
+
+              _buildSalesChart(),
+              const SizedBox(height: 25),
+              
+              _buildRecentOrders(),
+            ],
+          ),
         ),
       ),
     );
@@ -57,17 +106,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold)),
               ),
             ),
-            // 🌟 Dashboard Menu
             _drawerItem(Icons.dashboard, "Dashboard", true, () {
-              Navigator.pop(context); // Drawer ကိုပဲ ပိတ်လိုက်မယ်
+              Navigator.pop(context);
             }),
-            // 🌟 Menu Manager Menu (ချိတ်ဆက်မှု အပိုင်း)
             _drawerItem(Icons.restaurant_menu, "Menu Manager", false, () {
-              Navigator.pop(context); // Drawer ပိတ်မယ်
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MenuManager()),
-              );
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuManager()));
+            }),
+            _drawerItem(Icons.history, "Order History", false, () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistory()));
             }),
             _drawerItem(Icons.people, "Staff List", false, () {}),
             const Spacer(),
@@ -79,7 +127,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // 🌟 onTap ပါဝင်အောင် ပြုပြင်ထားသော Drawer Item helper
   Widget _drawerItem(IconData icon, String title, bool isActive, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: isActive ? Colors.orange : Colors.grey),
@@ -88,7 +135,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildStatsGrid() {
+  // 🌟 Parameter ထည့်သွင်းထားသော Stats Grid
+  Widget _buildStatsGrid(double revenue) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -97,8 +145,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       mainAxisSpacing: 15,
       childAspectRatio: 1.2,
       children: [
-        _statCard("Revenue", "1.2M", Icons.payments, Colors.green),
-        _statCard("Orders", "148", Icons.shopping_bag, Colors.blue),
+        _statCard("Revenue", "${(revenue / 1000).toStringAsFixed(0)}K", Icons.payments, Colors.green),
+        _statCard("Orders", "${orderHistory.length}", Icons.shopping_bag, Colors.blue),
         _statCard("Popular", "Ramen", Icons.star, Colors.orange),
         _statCard("Tables", "8/12", Icons.table_bar, Colors.purple),
       ],
@@ -149,14 +197,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Expanded(
             child: LineChart(
               LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.grey.withOpacity(0.1),
-                    strokeWidth: 1,
-                  ),
-                ),
+                gridData: const FlGridData(show: false),
                 titlesData: FlTitlesData(
                   show: true,
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -166,11 +207,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                        if (value >= 0 && value < 7) {
-                          return Text(days[value.toInt()], 
-                            style: const TextStyle(color: Colors.grey, fontSize: 12));
-                        }
-                        return const Text('');
+                        return value >= 0 && value < 7 
+                          ? Text(days[value.toInt()], style: const TextStyle(color: Colors.grey, fontSize: 12))
+                          : const Text('');
                       },
                     ),
                   ),
@@ -178,24 +217,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
                   LineChartBarData(
-                    spots: [
-                      const FlSpot(0, 3),
-                      const FlSpot(1, 4),
-                      const FlSpot(2, 3.5),
-                      const FlSpot(3, 5),
-                      const FlSpot(4, 4),
-                      const FlSpot(5, 6),
-                      const FlSpot(6, 5.5),
-                    ],
+                    spots: const [FlSpot(0, 3), FlSpot(1, 4), FlSpot(2, 3.5), FlSpot(3, 5), FlSpot(4, 4), FlSpot(5, 6), FlSpot(6, 5.5)],
                     isCurved: true,
                     color: Colors.orange,
                     barWidth: 4,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.orange.withOpacity(0.1),
-                    ),
+                    belowBarData: BarAreaData(show: true, color: Colors.orange.withOpacity(0.1)),
                   ),
                 ],
               ),
@@ -218,8 +244,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Live Feed", 
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text("Live Feed", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const Divider(),
           ListView.builder(
             shrinkWrap: true,
@@ -229,8 +254,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.receipt_long, color: Colors.orange),
               title: Text("Table ${index + 1}"),
-              trailing: const Text("Pending", 
-                style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+              trailing: const Text("Pending", style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
