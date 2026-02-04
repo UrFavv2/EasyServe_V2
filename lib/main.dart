@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 // အောက်က import မှာ 'pos' နေရာမှာ မင်းရဲ့ project နာမည်ကို အစားထိုးပါ
 import './screens/splash_screen.dart';
-void main() {
+import './screens/kitchen/kitchen_main_screen.dart';
+import './screens/admin/dashboard_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://uhrmrrquagfedjixqxzf.supabase.co', // 👈 စောစောကရတဲ့ URL ထည့်ပါ
+    anonKey: 'sb_publishable_c2uIcemiPQlz4cz_oIlTIg_RSDxlf4e', // 👈 စောစောကရတဲ့ Key ထည့်ပါ
+  );
+
   runApp(const EasyServeApp());
 }
+
 
 class EasyServeApp extends StatelessWidget {
   const EasyServeApp({super.key});
