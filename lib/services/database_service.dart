@@ -29,4 +29,9 @@ Future<Map<String, dynamic>?> loginWithPin(String pin) async {
 
   return response;
 }
+
+Stream<List<Map<String, dynamic>>> getMenuItemsStream() {
+  // 'menu_items' အစား 'menu_with_categories' လို့ ပြောင်းလိုက်တာပါ
+  return supabase.from('menu_with_categories').stream(primaryKey: ['id']).order('item_name');
+}
 }

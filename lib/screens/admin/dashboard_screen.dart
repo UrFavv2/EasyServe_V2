@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart'; 
-import 'menu_manager.dart'; 
-import 'order_history.dart'; 
-import 'inventory_manager.dart'; 
+import 'menu_manager.dart';
+import 'order_history.dart';
 import 'staff_list.dart'; // 🌟 Staff List ကို import လုပ်ဖို့ မမေ့ပါနဲ့ Bro
 import '../../data/constants.dart'; 
 
@@ -63,23 +62,23 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Today's Total Revenue", 
+                    const Text("Today's Total Revenue",
                       style: TextStyle(color: Colors.white70, fontSize: 14)),
                     const SizedBox(height: 5),
-                    Text("${formatPrice(totalRevenue)} MMK", 
+                    Text("${formatPrice(totalRevenue)} MMK",
                       style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    const Text("Keep up the good work!", 
+                    const Text("Keep up the good work!",
                       style: TextStyle(color: Colors.white54, fontSize: 12)),
                   ],
                 ),
               ),
 
-              const Text("Dashboard Overview", 
+              const Text("Dashboard Overview",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               
-              _buildStatsGrid(totalRevenue), 
+              _buildStatsGrid(totalRevenue),
               const SizedBox(height: 25),
 
               _buildSalesChart(),
@@ -101,7 +100,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           children: [
             const DrawerHeader(
               child: Center(
-                child: Text("SERVE AI", 
+                child: Text("SERVE AI",
                   style: TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold)),
               ),
             ),
@@ -116,17 +115,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistory()));
             }),
-            
-            _drawerItem(Icons.inventory_2_outlined, "Inventory Manager", false, () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const InventoryManager()));
-            }),
 
             // 🌟 ဤနေရာတွင် Staff List ကို ချိတ်ဆက်လိုက်ပါပြီ Bro
             _drawerItem(Icons.people_outline, "Staff List", false, () {
               Navigator.pop(context); // Drawer အရင်ပိတ်မယ်
               Navigator.push(
-                context, 
+                context,
                 MaterialPageRoute(builder: (context) => const StaffList())
               );
             }),
