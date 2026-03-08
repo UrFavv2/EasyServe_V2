@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// အောက်က import မှာ 'pos' နေရာမှာ မင်းရဲ့ project နာမည်ကို အစားထိုးပါ
 import './screens/splash_screen.dart';
 import './screens/kitchen/kitchen_main_screen.dart';
 import './screens/admin/dashboard_screen.dart';
@@ -10,8 +9,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url: 'https://uhrmrrquagfedjixqxzf.supabase.co', // 👈 စောစောကရတဲ့ URL ထည့်ပါ
-    anonKey: 'sb_publishable_c2uIcemiPQlz4cz_oIlTIg_RSDxlf4e', // 👈 စောစောကရတဲ့ Key ထည့်ပါ
+    url: 'https://uhrmrrquagfedjixqxzf.supabase.co',
+    anonKey: 'sb_publishable_c2uIcemiPQlz4cz_oIlTIg_RSDxlf4e',
   );
 
   runApp(const EasyServeApp());
@@ -24,13 +23,12 @@ class EasyServeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // ညာဘက်အပေါ်က Debug စာတန်းကို ဖျောက်ဖို့
+      debugShowCheckedModeBanner: false,
       title: 'EasyServe POS',
       theme: ThemeData(
         primarySwatch: Colors.orange,
-        useMaterial3: true, // Modern ဖြစ်တဲ့ UI style သုံးဖို့
+        useMaterial3: true,
       ),
-      // App စဖွင့်တာနဲ့ Login Screen ကို အရင်ပြမယ်
       home: const SplashScreen(),
     );
   }

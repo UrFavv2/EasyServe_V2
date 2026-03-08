@@ -13,7 +13,7 @@ class TableSelectionScreen extends StatefulWidget {
 class _TableSelectionScreenState extends State<TableSelectionScreen> {
   final supabase = Supabase.instance.client;
 
-  // Kitchen Notifications (လောလောဆယ် Static ထားထားပါတယ်)
+  // Kitchen Notifications logic
   List<Map<String, dynamic>> notifications = [
     {"table": "3", "item": "Fried Rice", "time": "2 mins ago", "status": "Ready"},
     {"table": "5", "item": "Coca Cola", "time": "Just now", "status": "Ready"},
@@ -87,7 +87,7 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
         ],
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        // Database က tables table ကို table_number အလိုက် စီပြီး ယူမယ်
+        // Realtime stream သုံးထားလို့ database ပြောင်းတာနဲ့ UI ချက်ချင်းလိုက်ပြောင်းပါလိမ့်မယ်
         stream: supabase.from('tables').stream(primaryKey: ['id']).order('table_number'),
         builder: (context, snapshot) {
           if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
@@ -99,58 +99,89 @@ class _TableSelectionScreenState extends State<TableSelectionScreen> {
             padding: const EdgeInsets.all(12.0),
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.75,
+                crossAxisCount: 2, 
+                crossAxisSpacing: 12, 
+                mainAxisSpacing: 12, 
+                childAspectRatio: 0.65, 
               ),
               itemCount: dbTables.length,
               itemBuilder: (context, index) {
                 final table = dbTables[index];
-                final int tableId = table['id']; // Database ID
+                final int tableId = table['id']; 
                 final String tableNum = table['table_number'].toString();
-                final bool isOccupied = table['status'] == 'Occupied';
+                
+                // 🌟 Logic ပြင်ဆင်ချက်- Database ထဲက status က "Occupied" ဖြစ်နေမှ isOccupied true ဖြစ်မယ်
+                // Case-sensitive ဖြစ်တတ်လို့ "Occupied" လို့ တိုက်ရိုက်စစ်တာ ပိုစိတ်ချရပါတယ်
+                final String status = table['status']?.toString() ?? "Available";
+                final bool isOccupied = status == 'Occupied';
                 
                 return Card(
                   elevation: 5,
                   clipBehavior: Clip.antiAlias,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: isOccupied ? Colors.red : Colors.green.withOpacity(0.5), width: 3),
+                    side: BorderSide(
+                      color: isOccupied ? Colors.red : Colors.green.withOpacity(0.5), 
+                      width: 3
+                    ),
                   ),
                   child: Stack(
                     children: [
-                      Positioned.fill(child: Image.asset('assets/images/table img.jpg', fit: BoxFit.cover, errorBuilder: (c, e, s) => Container(color: Colors.grey[300]))),
-                      Positioned.fill(child: Container(color: isOccupied ? Colors.red.withOpacity(0.4) : Colors.black.withOpacity(0.7))),
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/table img.jpg', 
+                          fit: BoxFit.cover, 
+                          errorBuilder: (c, e, s) => Container(color: Colors.grey[300])
+                        )
+                      ),
+                      Positioned.fill(
+                        child: Container(
+                          color: isOccupied ? Colors.red.withOpacity(0.4) : Colors.black.withOpacity(0.6)
+                        )
+                      ),
                       
                       Padding(
-                        padding: const EdgeInsets.all(15.0),
+                        padding: const EdgeInsets.all(10.0),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text("TABLE $tableNum", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                            const SizedBox(height: 10),
+                            Text(
+                              "TABLE $tableNum", 
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)
+                            ),
+                            const SizedBox(height: 8),
+                            
+                            // ADD ORDER Button
                             ElevatedButton(
                               onPressed: () {
-                                // 🌟 MenuPage ကို tableNumber ရော tableId ပါ ပို့လိုက်ပါတယ်
                                 Navigator.push(context, MaterialPageRoute(
                                   builder: (c) => MenuPage(tableNumber: tableNum, tableId: tableId)
                                 ));
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isOccupied ? Colors.red[800] : Colors.green, 
-                                foregroundColor: Colors.white
+                                backgroundColor: isOccupied ? Colors.orange[800] : Colors.green, 
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                               ),
-                              child: Text(isOccupied ? "ADD ORDER" : "NEW ORDER"),
+                              child: Text(isOccupied ? "ADD ORDER" : "NEW ORDER", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                             ),
+                            
+                            // 🔥 BILL OUT Button (Occupied ဖြစ်နေမှ ပေါ်လာမယ်)
                             if (isOccupied) ...[
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 6),
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.push(context, MaterialPageRoute(
-                                    builder: (c) => CheckoutPage(tableNumber: tableNum, orders: const [])
+                                    builder: (c) => CheckoutPage(tableNumber: tableNum, tableId: tableId)
                                   ));
                                 },
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.red[900]),
-                                child: const Text("BILL OUT", style: TextStyle(fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white, 
+                                  foregroundColor: Colors.red[900],
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                child: const Text("BILL OUT", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                               ),
                             ]
                           ],

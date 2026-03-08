@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../data/constants.dart'; // staffList variable ရှိရာနေရာ
-import '../../services/database_service.dart'; // ကျနော်တို့ဆောက်ခဲ့တဲ့ service
+import '../../data/constants.dart';
+import '../../services/database_service.dart';
 
 class StaffList extends StatefulWidget {
   const StaffList({super.key});
@@ -24,7 +24,6 @@ class _StaffListState extends State<StaffList> {
     }
   }
 
-  // 🛠️ Supabase နဲ့ ချိတ်ဆက်ပြီး Register လုပ်မည့် Function
   Future<void> _handleRegister(Map<String, dynamic>? staff) async {
     if (_nameController.text.isNotEmpty && _idController.text.isNotEmpty) {
       try {
@@ -33,7 +32,7 @@ class _StaffListState extends State<StaffList> {
           await DatabaseService().addStaff(
             _nameController.text,
             _selectedRole,
-            "1234", // Default PIN code
+            "1234",
           );
 
           // 2. Local List ကို Update လုပ်ခြင်း (UI မှာ ချက်ချင်းပေါ်စေရန်)

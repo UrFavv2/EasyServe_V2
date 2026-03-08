@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../data/constants.dart'; // 🌟 Global List ရှိတဲ့ File ကို Import လုပ်ပါ
+import '../../services/database_service.dart'; // ဘရိုရဲ့ DatabaseService Path ကို စစ်ပေးပါ
 
 class KitchenKdsScreen extends StatefulWidget {
   const KitchenKdsScreen({super.key});
@@ -9,35 +9,7 @@ class KitchenKdsScreen extends StatefulWidget {
 }
 
 class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
-  // Order Data များ (မူလအတိုင်း)
-  List<Map<String, dynamic>> allOrders = [
-    {
-      "table": "10",
-      "time": "15:02",
-      "isUrgent": true,
-      "items": [
-        {"name": "Special Fried Rice", "qty": 2, "notes": ["အစပ်လျှော့", "အသားများများ"]},
-        {"name": "Spicy Ramen", "qty": 1, "notes": ["အချိုမထည့်နဲ့"]},
-        {"name": "Coca Cola", "qty": 3, "notes": []},
-      ]
-    },
-    {
-      "table": "12",
-      "time": "08:15",
-      "isUrgent": false,
-      "items": [
-        {"name": "Chicken Curry", "qty": 1, "notes": ["ပါဆယ်ထုပ်ပေးပါ"]},
-      ]
-    },
-    {
-      "table": "14",
-      "time": "09:00",
-      "isUrgent": false,
-      "items": [
-        {"name": "Fried Noodle", "qty": 2, "notes": ["အသားမပါ"]},
-      ]
-    },
-  ];
+  final DatabaseService db = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -49,65 +21,63 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
         backgroundColor: const Color(0xFFCC5500),
         centerTitle: true,
         elevation: 0,
+        // Header မှာ Total Orders ပြဖို့ StreamBuilder တစ်ခုထပ်သုံးထားပါတယ်
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            color: const Color(0xFFCC5500),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "TOTAL ORDERS: ${allOrders.length}",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Stack(
-                  alignment: Alignment.center,
+          child: StreamBuilder<List<Map<String, dynamic>>>(
+            stream: db.getKitchenOrdersStream(),
+            builder: (context, snapshot) {
+              int count = snapshot.data?.length ?? 0;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                color: const Color(0xFFCC5500),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.notifications_active, color: Colors.white, size: 26),
-                    if (allOrders.isNotEmpty)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.yellow,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFCC5500), width: 1),
-                          ),
-                          constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
-                          child: Text(
-                            '${allOrders.length}',
-                            style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
+                    Text("TOTAL ORDERS: $count",
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    _buildNotificationIcon(count),
                   ],
                 ),
-              ],
-            ),
+              );
+            }
           ),
         ),
       ),
-      body: allOrders.isEmpty
-          ? const Center(child: Text("No Orders Left!", style: TextStyle(color: Colors.white70, fontSize: 20)))
-          : ListView.builder(
-              scrollDirection: Axis.horizontal, 
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-              itemCount: allOrders.length,
-              itemBuilder: (context, index) {
-                return _buildOrderColumnCard(index);
-              },
-            ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: db.getKitchenOrdersStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFFCC5500)));
+          }
+
+          final orders = snapshot.data ?? [];
+
+          if (orders.isEmpty) {
+            return const Center(
+              child: Text("No Orders Left! 👨‍🍳", 
+                style: TextStyle(color: Colors.white70, fontSize: 20, fontWeight: FontWeight.bold))
+            );
+          }
+
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              return _buildOrderColumnCard(orders[index]);
+            },
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildOrderColumnCard(int index) {
-    final order = allOrders[index];
-    bool isUrgent = order['isUrgent'];
-    List<dynamic> items = order['items'];
+  Widget _buildOrderColumnCard(Map<String, dynamic> order) {
+    int orderId = order['id'];
+    String tableNum = order['tables']?['table_number']?.toString() ?? order['table_id'].toString();
+    String time = order['created_at'] != null ? order['created_at'].toString().substring(11, 16) : "--:--";
+    bool isUrgent = order['priority'] == 'High'; // Database မှာ priority column ရှိရင် သုံးနိုင်ပါတယ်
 
     return Container(
       width: 350,
@@ -120,6 +90,7 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Card Header
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -133,50 +104,54 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text("TABLE", style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text("${order['table']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
+                    Text(tableNum, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28)),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     const Icon(Icons.timer, color: Colors.white70, size: 20),
-                    Text("${order['time']}", style: const TextStyle(color: Colors.white, fontSize: 16)),
+                    Text(time, style: const TextStyle(color: Colors.white, fontSize: 16)),
                   ],
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(15),
-              itemCount: items.length,
-              itemBuilder: (context, itemIndex) {
-                final item = items[itemIndex];
-                
-                // 🌟 Stock စစ်ဆေးသည့် Logic
-                // sharedMenuList ထဲမှာ Order ထဲကနာမည်နဲ့တူတာကိုရှာပြီး isAvailable ကို ကြည့်ပါတယ်
-                final menuData = sharedMenuList.firstWhere(
-                  (m) => m['name'] == item['name'],
-                  orElse: () => {"isAvailable": true}, // ရှာမတွေ့ရင် ပုံမှန်အတိုင်းပြမယ်
-                );
-                bool isAvailable = menuData['isAvailable'] ?? true;
 
-                return _foodItemRow(
-                  qty: item['qty'],
-                  name: item['name'],
-                  notes: item['notes'],
-                  isAvailable: isAvailable, // 🌟 Logic အသစ်ထည့်သွင်းခြင်း
+          // Order Items List with Stock Check
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: db.fetchOrderItemsWithNames(orderId),
+              builder: (context, itemSnapshot) {
+                if (!itemSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+                
+                final items = itemSnapshot.data!;
+                return ListView.builder(
+                  padding: const EdgeInsets.all(15),
+                  itemCount: items.length,
+                  itemBuilder: (context, i) {
+                    final item = items[i];
+                    // Database ထဲက menu_items table ရဲ့ is_available column ကို စစ်ပါတယ်
+                    bool isAvailable = item['menu_items']?['is_available'] ?? true;
+
+                    return _foodItemRow(
+                      qty: item['quantity'],
+                      name: item['menu_items']?['name'] ?? "Unknown",
+                      notes: item['notes'] != null ? [item['notes']] : [],
+                      isAvailable: isAvailable,
+                    );
+                  },
                 );
               },
             ),
           ),
+
+          // Mark as Done Button
           Padding(
             padding: const EdgeInsets.all(15),
             child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  allOrders.removeAt(index);
-                });
+              onPressed: () async {
+                await db.completeOrder(orderId);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green.shade600,
@@ -193,14 +168,12 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
     );
   }
 
-  // 🌟 isAvailable parameter ထပ်တိုးထားပါတယ်
   Widget _foodItemRow({required int qty, required String name, required List<dynamic> notes, required bool isAvailable}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stock မရှိရင် အရေအတွက်ကိုပါ မှိန်ပြပါမယ်
           Text("$qty x", 
             style: TextStyle(
               fontWeight: FontWeight.bold, 
@@ -212,7 +185,6 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🌟 Stock မရှိရင် စာသားကို မျဉ်းတားပြီး အရောင်မှိန်ပါမယ်
                 Text(
                   name, 
                   style: TextStyle(
@@ -222,11 +194,10 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
                     decoration: isAvailable ? null : TextDecoration.lineThrough,
                   )),
                 
-                // Stock မရှိရင် သတိပေးစာတန်းလေးပြပါမယ်
                 if (!isAvailable)
                   const Text("SOLD OUT IN STOCK", style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
 
-                if (notes.isNotEmpty)
+                if (notes.isNotEmpty && notes[0] != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Wrap(
@@ -248,6 +219,34 @@ class _KitchenKdsScreenState extends State<KitchenKdsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotificationIcon(int count) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        const Icon(Icons.notifications_active, color: Colors.white, size: 26),
+        if (count > 0)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.yellow,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFCC5500), width: 1),
+              ),
+              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+              child: Text(
+                '$count',
+                style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

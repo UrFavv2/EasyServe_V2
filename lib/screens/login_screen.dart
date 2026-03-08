@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/database_service.dart'; // DatabaseService ရှိရာလမ်းကြောင်းကို မှန်အောင်ချိန်ပေးပါ
-import './waiter/table_selection_screen.dart'; // Waiter အတွက်
-// import './admin/admin_dashboard.dart'; // Admin အတွက် (ရှိလျှင် Import လုပ်ပါ)
+import '../services/database_service.dart'; 
+import './waiter/table_selection_screen.dart'; 
+import './kitchen/kitchen_main_screen.dart'; 
+import './admin/dashboard_screen.dart'; // 🌟 Admin UI လမ်းကြောင်းအသစ်
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,9 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   String pin = "";
   bool isLoading = false;
 
-  // PIN ရိုက်တဲ့အခါ စစ်ဆေးမည့် Function
   void _onKeyPress(String value) async {
-    if (isLoading) return; // Load ဖြစ်နေရင် ထပ်နှိပ်လို့မရအောင်
+    if (isLoading) return; 
 
     setState(() {
       if (pin.length < 4) {
@@ -24,16 +24,14 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     });
 
-    // ၄ လုံးပြည့်ရင် Database မှာ စစ်မယ်
     if (pin.length == 4) {
       setState(() => isLoading = true);
       
       try {
-        // Supabase ကနေ ဝန်ထမ်းကို PIN နဲ့ ရှာမယ်
         final staff = await DatabaseService().loginWithPin(pin);
 
         if (staff != null) {
-          String role = staff['role'];
+          String role = staff['role'].toString().toLowerCase();
           String name = staff['name'];
 
           if (mounted) {
@@ -41,10 +39,20 @@ class _LoginScreenState extends State<LoginScreen> {
               SnackBar(content: Text("Welcome, $name!"), backgroundColor: Colors.green),
             );
 
-            // Role အလိုက် Screen ခွဲပို့ခြင်း
-            if (role == 'Admin') {
-               // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
+            // 🔥 Role အလိုက် Screen ခွဲပို့ခြင်း
+            if (role == 'kitchen') {
+              Navigator.pushReplacement(
+                context, 
+                MaterialPageRoute(builder: (context) => const KitchenMainScreen())
+              );
+            } else if (role == 'admin') {
+              // 🌟 Admin အတွက် Dashboard ဆီသို့ ပို့ဆောင်ခြင်း
+              Navigator.pushReplacement(
+                context, 
+                MaterialPageRoute(builder: (context) => const AdminDashboard())
+              );
             } else {
+              // Default ကို Waiter အဖြစ် သတ်မှတ်ထားပါတယ်
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const TableSelectionScreen()),
@@ -52,9 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           }
         } else {
-          // PIN မှားခဲ့လျှင်
           setState(() {
-            pin = ""; // PIN ပြန်ဖျက်မယ်
+            pin = ""; 
             isLoading = false;
           });
           if (mounted) {
@@ -64,7 +71,10 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } catch (e) {
-        setState(() => isLoading = false);
+        setState(() {
+          isLoading = false;
+          pin = "";
+        });
         debugPrint("Login Error: $e");
       }
     }
@@ -95,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
             const Text("Enter Staff PIN to Login", style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 40),
 
-            // PIN Display (Dots)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (index) {
@@ -113,11 +122,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             
             const SizedBox(height: 20),
-            if (isLoading) const CircularProgressIndicator(color: Colors.orange),
+            if (isLoading) 
+              const SizedBox(height: 40, child: CircularProgressIndicator(color: Colors.orange))
+            else 
+              const SizedBox(height: 40),
 
-            const SizedBox(height: 40),
-
-            // Number Pad
             Expanded(
               child: GridView.count(
                 crossAxisCount: 3,

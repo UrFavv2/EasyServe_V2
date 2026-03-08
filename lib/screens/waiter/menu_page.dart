@@ -14,22 +14,22 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   final supabase = Supabase.instance.client;
-  String selectedCategory = "Tea & Coffee"; 
-  Map<String, Map<String, dynamic>> cart = {}; 
+  String selectedCategory = "Tea & Coffee";
+  Map<String, Map<String, dynamic>> cart = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text("TABLE ${widget.tableNumber} - MENU", 
+        title: Text("TABLE ${widget.tableNumber} - MENU",
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFFCC5500),
       ),
       body: Column(
         children: [
           _buildCategoryStream(), 
-          Expanded(child: _buildMenuStream()), 
+          Expanded(child: _buildMenuStream()),
         ],
       ),
       bottomNavigationBar: cart.isNotEmpty ? _buildCheckoutBar() : null,
